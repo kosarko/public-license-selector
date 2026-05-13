@@ -4,8 +4,6 @@ LicenseCompatibility = require './compatibility'
 ###
 # Module: data/questions.coffee
 # Summary: Decision tree functions invoked by `LicenseSelector.goto`.
-# Updated in T4 to match approved flowcharts (software: LS_Flowchart_navrh_software_ENG,
-# data: LS_Flowchart_navrh_Data_ENG).
 ###
 QuestionDefinitions =
   KindOfContent: ->
