@@ -101,14 +101,11 @@ A larger work is a software project that involves combining existing software wi
 ExplanationsTerms = _.keys(Explanations)
 
 addExplanations = (text) ->
-  for term in ExplanationsTerms
-    index = text.indexOf(term)
-    if ( index >= 0 )
-      text = text.substring(0,index) +
-        '<span class="ls-term">' +
-        text.substring(index, index + term.length) +
-        '</span>' + text.substring(index + term.length)
-  return text
+  terms = ExplanationsTerms.slice()
+  terms.sort (a, b) -> b.length - a.length
+  escapedTerms = (term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') for term in terms)
+  pattern = new RegExp(escapedTerms.join('|'), 'g')
+  text.replace pattern, (match) -> "<span class=\"ls-term\">#{match}</span>"
 
 explanationTooltips = (scope, container) ->
   $('.ls-term', scope).each ->
