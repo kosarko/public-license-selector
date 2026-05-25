@@ -51,34 +51,40 @@ or are you licensing a library (your code
 will be linked)?"])
     class StrongCopyleft softwarePath
 
-    KindOfContent -->YourSoftware
-    KindOfContent -->DataCopyrightable
+    KindOfContent -->|"Software"| YourSoftware
+    KindOfContent -->|"Data"| DataCopyrightable
     DataCopyrightable -->|"Yes"| OwnIPR
     OwnIPR -->|"Yes"| AllowDerivativeWorks
     OwnIPR -->|"No"| EnsureLicensing
-    AllowDerivativeWorks -->ShareAlike
-    AllowDerivativeWorks -->CommercialUse
-    ShareAlike -->CommercialUse
-    CommercialUse -->DecideAttribute
+    AllowDerivativeWorks -->|"Yes"| ShareAlike
+    AllowDerivativeWorks -->|"No"| CommercialUse
+    ShareAlike -->|"Yes"| CommercialUse
+    ShareAlike -->|"No"| CommercialUse
+    CommercialUse -->|"Yes"| DecideAttribute
     EnsureLicensing -->|"Yes"| LicenseInteropData
-    LicenseInteropData -->|"Option selected"| AllowDerivativeWorks
+    LicenseInteropData -->|"Next"| AllowDerivativeWorks
     YourSoftware -->|"Based on existing software"| LicenseInteropSoftware
     YourSoftware -->|"My own code"| Copyleft
-    LicenseInteropSoftware -->|"Option selected"| Copyleft
-    LicenseInteropSoftware -->|"Option selected"| StrongCopyleft
-    Copyleft -->StrongCopyleft
-    DataCopyrightable --> End([Select License])
-    AllowDerivativeWorks --> End([Select License])
-    ShareAlike --> End([Select License])
-    CommercialUse --> End([Select License])
-    DecideAttribute --> End([Select License])
-    LicenseInteropData --> End([Select License])
-    LicenseInteropSoftware --> End([Select License])
-    Copyleft --> End([Select License])
-    StrongCopyleft --> End([Select License])
-    EnsureLicensing --> Error([Cannot License])
-    LicenseInteropData --> Error([Cannot License])
-    LicenseInteropSoftware --> Error([Cannot License])
+    LicenseInteropSoftware -->|"Next"| Copyleft
+    LicenseInteropSoftware -->|"Next"| StrongCopyleft
+    Copyleft -->|"Yes"| StrongCopyleft
+    DataCopyrightable -->|"No"| End([Select License])
+    AllowDerivativeWorks -->|"No"| End([Select License])
+    ShareAlike -->|"Yes"| End([Select License])
+    ShareAlike -->|"No"| End([Select License])
+    CommercialUse -->|"Yes"| End([Select License])
+    CommercialUse -->|"No"| End([Select License])
+    DecideAttribute -->|"Yes"| End([Select License])
+    DecideAttribute -->|"No"| End([Select License])
+    LicenseInteropData -->|"Next"| End([Select License])
+    LicenseInteropSoftware -->|"Next"| End([Select License])
+    Copyleft -->|"Yes"| End([Select License])
+    Copyleft -->|"No"| End([Select License])
+    StrongCopyleft -->|"Executable"| End([Select License])
+    StrongCopyleft -->|"Library"| End([Select License])
+    EnsureLicensing -->|"No"| Error([Cannot License])
+    LicenseInteropData -->|"Next"| Error([Cannot License])
+    LicenseInteropSoftware -->|"Next"| Error([Cannot License])
 
     classDef dataPath fill:#e1f5ff,stroke:#01579b,stroke-width:2px,padding:15px,min-width:250px
     classDef softwarePath fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,padding:15px,min-width:250px
@@ -119,24 +125,28 @@ Domain?"])
     LicenseInteropData(["Choose licenses present in your dataset:"])
     class LicenseInteropData dataPath
 
-    KindOfContent -->DataCopyrightable
+    KindOfContent -->|"Data"| DataCopyrightable
     DataCopyrightable -->|"Yes"| OwnIPR
     OwnIPR -->|"Yes"| AllowDerivativeWorks
     OwnIPR -->|"No"| EnsureLicensing
-    AllowDerivativeWorks -->ShareAlike
-    AllowDerivativeWorks -->CommercialUse
-    ShareAlike -->CommercialUse
-    CommercialUse -->DecideAttribute
+    AllowDerivativeWorks -->|"Yes"| ShareAlike
+    AllowDerivativeWorks -->|"No"| CommercialUse
+    ShareAlike -->|"Yes"| CommercialUse
+    ShareAlike -->|"No"| CommercialUse
+    CommercialUse -->|"Yes"| DecideAttribute
     EnsureLicensing -->|"Yes"| LicenseInteropData
-    LicenseInteropData -->|"Option selected"| AllowDerivativeWorks
-    DataCopyrightable --> End([Select License])
-    AllowDerivativeWorks --> End([Select License])
-    ShareAlike --> End([Select License])
-    CommercialUse --> End([Select License])
-    DecideAttribute --> End([Select License])
-    LicenseInteropData --> End([Select License])
-    EnsureLicensing --> Error([Cannot License])
-    LicenseInteropData --> Error([Cannot License])
+    LicenseInteropData -->|"Next"| AllowDerivativeWorks
+    DataCopyrightable -->|"No"| End([Select License])
+    AllowDerivativeWorks -->|"No"| End([Select License])
+    ShareAlike -->|"Yes"| End([Select License])
+    ShareAlike -->|"No"| End([Select License])
+    CommercialUse -->|"Yes"| End([Select License])
+    CommercialUse -->|"No"| End([Select License])
+    DecideAttribute -->|"Yes"| End([Select License])
+    DecideAttribute -->|"No"| End([Select License])
+    LicenseInteropData -->|"Next"| End([Select License])
+    EnsureLicensing -->|"No"| Error([Cannot License])
+    LicenseInteropData -->|"Next"| Error([Cannot License])
 
     classDef dataPath fill:#e1f5ff,stroke:#01579b,stroke-width:2px,padding:15px,min-width:250px
     classDef softwarePath fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,padding:15px,min-width:250px
@@ -165,16 +175,18 @@ or are you licensing a library (your code
 will be linked)?"])
     class StrongCopyleft softwarePath
 
-    KindOfContent -->YourSoftware
+    KindOfContent -->|"Software"| YourSoftware
     YourSoftware -->|"Based on existing software"| LicenseInteropSoftware
     YourSoftware -->|"My own code"| Copyleft
-    LicenseInteropSoftware -->|"Option selected"| Copyleft
-    LicenseInteropSoftware -->|"Option selected"| StrongCopyleft
-    Copyleft -->StrongCopyleft
-    LicenseInteropSoftware --> End([Select License])
-    Copyleft --> End([Select License])
-    StrongCopyleft --> End([Select License])
-    LicenseInteropSoftware --> Error([Cannot License])
+    LicenseInteropSoftware -->|"Next"| Copyleft
+    LicenseInteropSoftware -->|"Next"| StrongCopyleft
+    Copyleft -->|"Yes"| StrongCopyleft
+    LicenseInteropSoftware -->|"Next"| End([Select License])
+    Copyleft -->|"Yes"| End([Select License])
+    Copyleft -->|"No"| End([Select License])
+    StrongCopyleft -->|"Executable"| End([Select License])
+    StrongCopyleft -->|"Library"| End([Select License])
+    LicenseInteropSoftware -->|"Next"| Error([Cannot License])
 
     classDef dataPath fill:#e1f5ff,stroke:#01579b,stroke-width:2px,padding:15px,min-width:250px
     classDef softwarePath fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,padding:15px,min-width:250px

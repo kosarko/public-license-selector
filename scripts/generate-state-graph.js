@@ -14,6 +14,8 @@ class StateGraphGenerator {
     this.transitions = [];
     this.terminalStates = [];
     this.errorStates = [];
+    this.terminalTransitions = [];  // {from, label}
+    this.errorTransitions = [];     // {from, label}
   }
 
   /**
@@ -78,13 +80,25 @@ class StateGraphGenerator {
       });
     }
 
-    // Check for @license (terminal state)
-    if (body.includes('@license')) {
+    // Extract @license occurrences for terminal transitions (avoid matching @licensesList)
+    const licenseRegex = /@license\b/g;
+    let licenseMatch;
+    while ((licenseMatch = licenseRegex.exec(body)) !== null) {
+      const label = this.inferLabel(body, licenseMatch.index);
+      this.terminalTransitions.push({ from: stateName, label });
+    }
+    if (/@license\b/.test(body)) {
       this.terminalStates.push(stateName);
     }
 
-    // Check for @cantlicense (error state)
-    if (body.includes('@cantlicense')) {
+    // Extract @cantlicense occurrences for error transitions
+    const cantLicenseRegex = /@cantlicense\b/g;
+    let cantLicenseMatch;
+    while ((cantLicenseMatch = cantLicenseRegex.exec(body)) !== null) {
+      const label = this.inferLabel(body, cantLicenseMatch.index);
+      this.errorTransitions.push({ from: stateName, label });
+    }
+    if (/@cantlicense\b/.test(body)) {
       this.errorStates.push(stateName);
     }
 
@@ -102,32 +116,30 @@ class StateGraphGenerator {
   }
 
   /**
-   * Infer the label for a transition based on context
+   * Infer the label for a transition based on the nearest enclosing answer context.
+   * Searches backward from actionIndex for the most recent @yes, @no, or @answer.
    */
-  inferLabel(body, gotoIndex) {
-    // Look backwards from @goto to find the associated answer
-    const beforeGoto = body.substring(0, gotoIndex);
+  inferLabel(body, actionIndex) {
+    const before = body.substring(0, actionIndex);
 
-    // Check for @yes -> @goto pattern
-    if (beforeGoto.match(/@yes\s*->\s*$/)) {
-      return 'Yes';
+    let lastYes = -1, lastNo = -1, lastAnswerIndex = -1, lastAnswerText = '';
+
+    for (const m of before.matchAll(/@yes\b/g)) lastYes = m.index;
+    for (const m of before.matchAll(/@no\b/g)) lastNo = m.index;
+    for (const m of before.matchAll(/@answer\s+['"]([^'"]+)['"]/g)) {
+      lastAnswerIndex = m.index;
+      lastAnswerText = m[1];
     }
 
-    // Check for @no -> @goto pattern
-    if (beforeGoto.match(/@no\s*->\s*$/)) {
-      return 'No';
+    const maxIndex = Math.max(lastYes, lastNo, lastAnswerIndex);
+    if (maxIndex >= 0) {
+      if (maxIndex === lastYes) return 'Yes';
+      if (maxIndex === lastNo) return 'No';
+      return lastAnswerText;
     }
 
-    // Check for @answer 'text' -> @goto pattern
-    const answerMatch = beforeGoto.match(/@answer\s+['"]([^'"]+)['"]\s*,\s*->\s*$/);
-    if (answerMatch) {
-      return answerMatch[1];
-    }
-
-    // Check for @option pattern
-    if (beforeGoto.includes('@option')) {
-      return 'Option selected';
-    }
+    // Fallback for @option-driven actions (LicenseInteropData, LicenseInteropSoftware)
+    if (before.includes('@option')) return 'Next';
 
     return '';
   }
@@ -170,7 +182,7 @@ class StateGraphGenerator {
         continue;
       }
 
-      const transKey = `${transition.from}->${transition.to}`;
+      const transKey = `${transition.from}--${transition.label}-->${transition.to}`;
       if (processedTransitions.has(transKey)) {
         continue;
       }
@@ -180,19 +192,30 @@ class StateGraphGenerator {
       mermaid += `    ${transition.from} -->${label}${transition.to}\n`;
     }
 
-    // Add terminal state transitions
-    for (const termState of this.terminalStates) {
-      if (filterPath && !this.isInPath(termState, filterPath)) {
+    // Add labeled terminal transitions
+    const processedTerminal = new Set();
+    for (const { from, label } of this.terminalTransitions) {
+      if (filterPath && !this.isInPath(from, filterPath)) {
         continue;
       }
-      mermaid += `    ${termState} --> End([Select License])\n`;
+      const key = `${from}--${label}-->End`;
+      if (processedTerminal.has(key)) continue;
+      processedTerminal.add(key);
+      const labelStr = label ? `|"${this.escapeText(label)}"| ` : '';
+      mermaid += `    ${from} -->${labelStr}End([Select License])\n`;
     }
 
-    for (const errorState of this.errorStates) {
-      if (filterPath && !this.isInPath(errorState, filterPath)) {
+    // Add labeled error transitions
+    const processedError = new Set();
+    for (const { from, label } of this.errorTransitions) {
+      if (filterPath && !this.isInPath(from, filterPath)) {
         continue;
       }
-      mermaid += `    ${errorState} --> Error([Cannot License])\n`;
+      const key = `${from}--${label}-->Error`;
+      if (processedError.has(key)) continue;
+      processedError.add(key);
+      const labelStr = label ? `|"${this.escapeText(label)}"| ` : '';
+      mermaid += `    ${from} -->${labelStr}Error([Cannot License])\n`;
     }
 
     // Add styling
