@@ -275,14 +275,10 @@ class StateGraphGenerator {
     ];
 
     if (pathType === 'data') {
-      return dataStates.includes(stateName) ||
-             this.terminalStates.includes(stateName) ||
-             this.errorStates.includes(stateName);
+      return dataStates.includes(stateName);
     }
     if (pathType === 'software') {
-      return softwareStates.includes(stateName) ||
-             this.terminalStates.includes(stateName) ||
-             this.errorStates.includes(stateName);
+      return softwareStates.includes(stateName);
     }
     return true;
   }

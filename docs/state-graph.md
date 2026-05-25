@@ -118,15 +118,6 @@ Domain?"])
     class EnsureLicensing dataPath
     LicenseInteropData(["Choose licenses present in your dataset:"])
     class LicenseInteropData dataPath
-    LicenseInteropSoftware(["Select licenses in your code:"])
-    class LicenseInteropSoftware softwarePath
-    Copyleft(["Do you require others who modify your code to
-release it under a compatible licence?"])
-    class Copyleft softwarePath
-    StrongCopyleft(["Is your code used directly as an executable
-or are you licensing a library (your code
-will be linked)?"])
-    class StrongCopyleft softwarePath
 
     KindOfContent -->DataCopyrightable
     DataCopyrightable -->|"Yes"| OwnIPR
@@ -138,21 +129,14 @@ will be linked)?"])
     CommercialUse -->DecideAttribute
     EnsureLicensing -->|"Yes"| LicenseInteropData
     LicenseInteropData -->|"Option selected"| AllowDerivativeWorks
-    LicenseInteropSoftware -->|"Option selected"| Copyleft
-    LicenseInteropSoftware -->|"Option selected"| StrongCopyleft
-    Copyleft -->StrongCopyleft
     DataCopyrightable --> End([Select License])
     AllowDerivativeWorks --> End([Select License])
     ShareAlike --> End([Select License])
     CommercialUse --> End([Select License])
     DecideAttribute --> End([Select License])
     LicenseInteropData --> End([Select License])
-    LicenseInteropSoftware --> End([Select License])
-    Copyleft --> End([Select License])
-    StrongCopyleft --> End([Select License])
     EnsureLicensing --> Error([Cannot License])
     LicenseInteropData --> Error([Cannot License])
-    LicenseInteropSoftware --> Error([Cannot License])
 
     classDef dataPath fill:#e1f5ff,stroke:#01579b,stroke-width:2px,padding:15px,min-width:250px
     classDef softwarePath fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,padding:15px,min-width:250px
@@ -168,27 +152,6 @@ flowchart TD
     Start([Start]) --> KindOfContent
 
     KindOfContent{"What do you want to deposit?"}
-    DataCopyrightable(["Is your data within the scope of copyright
-and related rights?"])
-    class DataCopyrightable dataPath
-    AllowDerivativeWorks(["Do you allow others to make derivative works?"])
-    class AllowDerivativeWorks dataPath
-    ShareAlike(["Do you require others to share derivative
-works based on your data under a compatible
-license?"])
-    class ShareAlike dataPath
-    CommercialUse(["Do you allow others to make commercial use of
-you data?"])
-    class CommercialUse dataPath
-    DecideAttribute(["Do you want others to attribute your data to
-you?"])
-    class DecideAttribute dataPath
-    EnsureLicensing(["Are all the elements of your dataset licensed
-under a public license or in the Public
-Domain?"])
-    class EnsureLicensing dataPath
-    LicenseInteropData(["Choose licenses present in your dataset:"])
-    class LicenseInteropData dataPath
     YourSoftware["Is your code based on existing software or is
 it your original work?"]
     class YourSoftware softwarePath
@@ -203,29 +166,14 @@ will be linked)?"])
     class StrongCopyleft softwarePath
 
     KindOfContent -->YourSoftware
-    KindOfContent -->DataCopyrightable
-    AllowDerivativeWorks -->ShareAlike
-    AllowDerivativeWorks -->CommercialUse
-    ShareAlike -->CommercialUse
-    CommercialUse -->DecideAttribute
-    EnsureLicensing -->|"Yes"| LicenseInteropData
-    LicenseInteropData -->|"Option selected"| AllowDerivativeWorks
     YourSoftware -->|"Based on existing software"| LicenseInteropSoftware
     YourSoftware -->|"My own code"| Copyleft
     LicenseInteropSoftware -->|"Option selected"| Copyleft
     LicenseInteropSoftware -->|"Option selected"| StrongCopyleft
     Copyleft -->StrongCopyleft
-    DataCopyrightable --> End([Select License])
-    AllowDerivativeWorks --> End([Select License])
-    ShareAlike --> End([Select License])
-    CommercialUse --> End([Select License])
-    DecideAttribute --> End([Select License])
-    LicenseInteropData --> End([Select License])
     LicenseInteropSoftware --> End([Select License])
     Copyleft --> End([Select License])
     StrongCopyleft --> End([Select License])
-    EnsureLicensing --> Error([Cannot License])
-    LicenseInteropData --> Error([Cannot License])
     LicenseInteropSoftware --> Error([Cannot License])
 
     classDef dataPath fill:#e1f5ff,stroke:#01579b,stroke-width:2px,padding:15px,min-width:250px
