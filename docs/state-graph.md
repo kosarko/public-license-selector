@@ -6,6 +6,8 @@
 
 This document visualizes the decision tree used by the Public License Selector. The selector guides users through a series of questions to recommend appropriate licenses for their software or data.
 
+Edge labels on path-specific diagrams include filter operations applied at each step: **+category** keeps only licenses with that category; **−category** removes them. Terminal nodes show the exact set of licenses reachable along that path.
+
 ## Complete State Graph
 
 ```mermaid
@@ -51,37 +53,37 @@ or are you licensing a library (your code
 will be linked)?"])
     class StrongCopyleft softwarePath
 
-    KindOfContent -->|"Software"| YourSoftware
-    KindOfContent -->|"Data"| DataCopyrightable
+    KindOfContent -->|"Software −data"| YourSoftware
+    KindOfContent -->|"Data −software"| DataCopyrightable
     DataCopyrightable -->|"Yes"| OwnIPR
     OwnIPR -->|"Yes"| AllowDerivativeWorks
     OwnIPR -->|"No"| EnsureLicensing
-    AllowDerivativeWorks -->|"Yes"| ShareAlike
-    AllowDerivativeWorks -->|"No"| CommercialUse
-    ShareAlike -->|"Yes"| CommercialUse
-    ShareAlike -->|"No"| CommercialUse
-    CommercialUse -->|"Yes"| DecideAttribute
+    AllowDerivativeWorks -->|"Yes −nd"| ShareAlike
+    AllowDerivativeWorks -->|"No +nd"| CommercialUse
+    ShareAlike -->|"Yes +sa"| CommercialUse
+    ShareAlike -->|"No −sa"| CommercialUse
+    CommercialUse -->|"Yes −nc"| DecideAttribute
     EnsureLicensing -->|"Yes"| LicenseInteropData
     LicenseInteropData -->|"Next"| AllowDerivativeWorks
     YourSoftware -->|"Based on existing software"| LicenseInteropSoftware
     YourSoftware -->|"My own code"| Copyleft
     LicenseInteropSoftware -->|"Next"| Copyleft
     LicenseInteropSoftware -->|"Next"| StrongCopyleft
-    Copyleft -->|"Yes"| StrongCopyleft
+    Copyleft -->|"Yes +copyleft"| StrongCopyleft
     DataCopyrightable -->|"No"| End([Select License])
-    AllowDerivativeWorks -->|"No"| End([Select License])
-    ShareAlike -->|"Yes"| End([Select License])
-    ShareAlike -->|"No"| End([Select License])
-    CommercialUse -->|"Yes"| End([Select License])
-    CommercialUse -->|"No"| End([Select License])
-    DecideAttribute -->|"Yes"| End([Select License])
-    DecideAttribute -->|"No"| End([Select License])
+    AllowDerivativeWorks -->|"No +nd"| End([Select License])
+    ShareAlike -->|"Yes +sa"| End([Select License])
+    ShareAlike -->|"No −sa"| End([Select License])
+    CommercialUse -->|"Yes −nc"| End([Select License])
+    CommercialUse -->|"No +nc +by"| End([Select License])
+    DecideAttribute -->|"Yes +by"| End([Select License])
+    DecideAttribute -->|"No +public-domain"| End([Select License])
     LicenseInteropData -->|"Next"| End([Select License])
     LicenseInteropSoftware -->|"Next"| End([Select License])
-    Copyleft -->|"Yes"| End([Select License])
-    Copyleft -->|"No"| End([Select License])
-    StrongCopyleft -->|"Executable"| End([Select License])
-    StrongCopyleft -->|"Library"| End([Select License])
+    Copyleft -->|"Yes +copyleft"| End([Select License])
+    Copyleft -->|"No −copyleft +permissive"| End([Select License])
+    StrongCopyleft -->|"Executable +strong"| End([Select License])
+    StrongCopyleft -->|"Library +weak"| End([Select License])
     EnsureLicensing -->|"No"| Error([Cannot License])
     LicenseInteropData -->|"Next"| Error([Cannot License])
     LicenseInteropSoftware -->|"Next"| Error([Cannot License])
@@ -125,28 +127,56 @@ Domain?"])
     LicenseInteropData(["Choose licenses present in your dataset:"])
     class LicenseInteropData dataPath
 
-    KindOfContent -->|"Data"| DataCopyrightable
+    KindOfContent -->|"Data −software"| DataCopyrightable
     DataCopyrightable -->|"Yes"| OwnIPR
     OwnIPR -->|"Yes"| AllowDerivativeWorks
     OwnIPR -->|"No"| EnsureLicensing
-    AllowDerivativeWorks -->|"Yes"| ShareAlike
-    AllowDerivativeWorks -->|"No"| CommercialUse
-    ShareAlike -->|"Yes"| CommercialUse
-    ShareAlike -->|"No"| CommercialUse
-    CommercialUse -->|"Yes"| DecideAttribute
+    AllowDerivativeWorks -->|"Yes −nd"| ShareAlike
+    AllowDerivativeWorks -->|"No +nd"| CommercialUse
+    ShareAlike -->|"Yes +sa"| CommercialUse
+    ShareAlike -->|"No −sa"| CommercialUse
+    CommercialUse -->|"Yes −nc"| DecideAttribute
     EnsureLicensing -->|"Yes"| LicenseInteropData
     LicenseInteropData -->|"Next"| AllowDerivativeWorks
-    DataCopyrightable -->|"No"| End([Select License])
-    AllowDerivativeWorks -->|"No"| End([Select License])
-    ShareAlike -->|"Yes"| End([Select License])
-    ShareAlike -->|"No"| End([Select License])
-    CommercialUse -->|"Yes"| End([Select License])
-    CommercialUse -->|"No"| End([Select License])
-    DecideAttribute -->|"Yes"| End([Select License])
-    DecideAttribute -->|"No"| End([Select License])
-    LicenseInteropData -->|"Next"| End([Select License])
-    EnsureLicensing -->|"No"| Error([Cannot License])
-    LicenseInteropData -->|"Next"| Error([Cannot License])
+    DataCopyrightable -->|"No"| Term_0
+    Term_0(["CC-PUBLIC-DOMAIN"])
+    class Term_0 terminalNode
+    CommercialUse -->|"Yes −nc"| Term_1
+    Term_1(["CC-BY-SA"])
+    class Term_1 terminalNode
+    CommercialUse -->|"No +nc +by"| Term_2
+    Term_2(["CC-BY-NC-SA"])
+    class Term_2 terminalNode
+    CommercialUse -->|"No +nc +by"| Term_3
+    Term_3(["CC-BY-NC"])
+    class Term_3 terminalNode
+    DecideAttribute -->|"Yes +by"| Term_4
+    Term_4(["CC-BY"])
+    class Term_4 terminalNode
+    DecideAttribute -->|"No +public-domain"| Term_5
+    Term_5(["CC-ZERO"])
+    class Term_5 terminalNode
+    CommercialUse -->|"Yes −nc"| Term_6
+    Term_6(["CC-BY-ND"])
+    class Term_6 terminalNode
+    CommercialUse -->|"No +nc +by"| Term_7
+    Term_7(["CC-BY-NC-ND"])
+    class Term_7 terminalNode
+    EnsureLicensing -->|"No"| Term_8
+    Term_8(["Cannot License"])
+    class Term_8 errorNode
+    LicenseInteropData -->|"Next"| Term_9
+    Term_9(["CC-BY-NC-SA"])
+    class Term_9 terminalNode
+    LicenseInteropData -->|"Next"| Term_10
+    Term_10(["ODBL, CC-BY-SA"])
+    class Term_10 terminalNode
+    LicenseInteropData -->|"Next"| Term_11
+    Term_11(["CC-BY-SA"])
+    class Term_11 terminalNode
+    LicenseInteropData -->|"Next"| Term_12
+    Term_12(["Cannot License"])
+    class Term_12 errorNode
 
     classDef dataPath fill:#e1f5ff,stroke:#01579b,stroke-width:2px,padding:15px,min-width:250px
     classDef softwarePath fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,padding:15px,min-width:250px
@@ -175,18 +205,25 @@ or are you licensing a library (your code
 will be linked)?"])
     class StrongCopyleft softwarePath
 
-    KindOfContent -->|"Software"| YourSoftware
+    KindOfContent -->|"Software −data"| YourSoftware
     YourSoftware -->|"Based on existing software"| LicenseInteropSoftware
     YourSoftware -->|"My own code"| Copyleft
     LicenseInteropSoftware -->|"Next"| Copyleft
     LicenseInteropSoftware -->|"Next"| StrongCopyleft
-    Copyleft -->|"Yes"| StrongCopyleft
-    LicenseInteropSoftware -->|"Next"| End([Select License])
-    Copyleft -->|"Yes"| End([Select License])
-    Copyleft -->|"No"| End([Select License])
-    StrongCopyleft -->|"Executable"| End([Select License])
-    StrongCopyleft -->|"Library"| End([Select License])
-    LicenseInteropSoftware -->|"Next"| Error([Cannot License])
+    Copyleft -->|"Yes +copyleft"| StrongCopyleft
+    LicenseInteropSoftware -->|"Next"| Term_0
+    Term_0(["Cannot License"])
+    class Term_0 errorNode
+    Copyleft -->|"No −copyleft +permissive"| Term_1
+    Term_1(["MIT, BSD-3C, BSD-2C, APACHE-2"])
+    class Term_1 terminalNode
+    StrongCopyleft -->|"Executable +strong"| Term_2
+    Term_2(["GPL-2+, GPL-3, AGPL-3"])
+    class Term_2 terminalNode
+    StrongCopyleft -->|"Library +weak"| Term_3
+    Term_3(["MPL-2, LGPL-2.1+, LGPL-3, EPL-1
+CDDL-1"])
+    class Term_3 terminalNode
 
     classDef dataPath fill:#e1f5ff,stroke:#01579b,stroke-width:2px,padding:15px,min-width:250px
     classDef softwarePath fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,padding:15px,min-width:250px
@@ -217,10 +254,11 @@ will be linked)?"])
 
 - 🔹 **Blue nodes**: Data licensing path
 - 🔸 **Purple nodes**: Software licensing path
-- ✅ **Green nodes**: Terminal states (license selection)
+- ✅ **Green nodes**: Terminal states — license set shown inside node
 - ❌ **Red nodes**: Error states (cannot license)
 - ♦️ **Diamond shapes**: Yes/No decisions
 - ⬜ **Rectangles**: Multi-option questions
+- **Edge labels**: `+cat` keeps licenses with category; `−cat` removes them
 
 ## How to Update
 
