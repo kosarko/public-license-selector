@@ -78,5 +78,9 @@ LabelsDefinitions =
   opendata:
     title: 'Open Data'
     itemClass: 'ls-icon-opendata'
+  'not-recommended':
+    text: 'Not Recommended'
+    title: 'This license is not recommended for new projects, but is compatible with the licenses in your existing code'
+    itemClass: 'ls-label-not-recommended'
 
 module.exports = LabelsDefinitions

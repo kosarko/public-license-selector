@@ -136,7 +136,11 @@ QuestionDefinitions =
       for index, value of list
         continue unless value
         licenseKey = LicenseCompatibility.columns[index]
-        licenses.push @licenses[licenseKey] if licenseKey && @licenses[licenseKey]?
+        if licenseKey && @licenses[licenseKey]?
+          license = @licenses[licenseKey]
+          unless license.available
+            license = _.assign({}, license, {compatibilityFallback: true, labels: (license.labels or []).concat('not-recommended')})
+          licenses.push license
 
       @licensesList.update(licenses)
 

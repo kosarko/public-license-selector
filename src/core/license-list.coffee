@@ -20,9 +20,15 @@ class LicenseList
     @list = $('<ul />')
     @error = $('<div/>').addClass('ls-not-found').append($('<h4/>').text('No license found')).append('Try change the search criteria or start the questionnaire again.')
     @error.hide()
+    @notRecommendedList = $('<ul />')
+    @notRecommendedDetails = $('<details class="ls-not-recommended-section" />')
+      .append($('<summary />'))
+      .append(@notRecommendedList)
+    @notRecommendedDetails.hide()
     @container = $('<div class="ls-license-list" />')
       .append(@error)
       .append(@list)
+      .append(@notRecommendedDetails)
       .appendTo(@parent)
     @update()
 
@@ -111,7 +117,7 @@ class LicenseList
     return license
 
   matchFilter: (license) ->
-    return false unless license.available
+    return false unless license.available or license.compatibilityFallback
     return true unless @term
     return comperator(license.name, @term) || comperator(license.description, @term)
 
@@ -119,7 +125,11 @@ class LicenseList
     unless licenses?
       licenses = @availableLicenses
     else
-      licenses = @availableLicenses = _.where licenses, { available: true }
+      licenses = @availableLicenses = _.filter licenses, (l) -> l.available or l.compatibilityFallback
+
+    isFallback = (license) -> license.compatibilityFallback
+    recommended    = _.reject licenses, isFallback
+    notRecommended = _.filter licenses, isFallback
 
     elements = {}
     for el in @list.children()
@@ -130,9 +140,11 @@ class LicenseList
       else
         el.remove()
 
+    recommendedVisible = 0
     previous = null
-    for license in @sortLicenses(licenses)
+    for license in @sortLicenses(recommended)
       continue unless @matchFilter(license)
+      recommendedVisible++
       if elements[license.key]?
         previous = elements[license.key]
       else
@@ -143,7 +155,22 @@ class LicenseList
           @list.prepend el
         previous = el
 
-    if @list.children().size() == 0
+    @notRecommendedList.empty()
+    notRecommendedVisible = []
+    if recommendedVisible == 0
+      for license in @sortLicenses(notRecommended)
+        continue unless @matchFilter(license)
+        notRecommendedVisible.push license
+        @notRecommendedList.append @createElement license
+
+    if notRecommendedVisible.length > 0
+      count = notRecommendedVisible.length
+      @notRecommendedDetails.find('summary').text("Licenses not recommended for new projects, but compatible with your selection (#{count})")
+      @notRecommendedDetails.show()
+    else
+      @notRecommendedDetails.hide()
+
+    if recommendedVisible == 0 and notRecommendedVisible.length == 0
       @error.show()
     else
       @error.hide()
