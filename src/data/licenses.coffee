@@ -121,7 +121,7 @@ LicenseDefinitions =
     labels: ['public', 'perl', 'osi']
 
   'gpl-2+':
-    name: 'GNU General Public License 2 or later (GPL-2.0)'
+    name: 'GNU General Public License 2 or later (GPL-2.0-or-later)'
     priority: 10
     available: true
     url: 'http://opensource.org/licenses/GPL-2.0'
@@ -130,7 +130,7 @@ LicenseDefinitions =
     labels: ['public', 'gpl', 'copyleft']
 
   'gpl-2':
-    name: 'GNU General Public License 2 (GPL-2.0)'
+    name: 'GNU General Public License 2 (GPL-2.0-only)'
     priority: 10
     available: false
     url: 'http://opensource.org/licenses/GPL-2.0'
@@ -139,7 +139,7 @@ LicenseDefinitions =
     labels: ['public', 'gpl', 'copyleft']
 
   'gpl-3':
-    name: 'GNU General Public License 3 (GPL-3.0)'
+    name: 'GNU General Public License 3 (GPL-3.0-only)'
     priority: 11
     available: true
     url: 'http://opensource.org/licenses/GPL-3.0'
@@ -148,7 +148,7 @@ LicenseDefinitions =
     labels: ['public', 'gpl3', 'copyleft']
 
   'agpl-1':
-    name: 'Affero General Public License 1 (AGPL-1.0)'
+    name: 'Affero General Public License 1 (AGPL-1.0-only)'
     priority: 50
     available: false
     url: 'http://www.affero.org/oagpl.html'
@@ -157,7 +157,7 @@ LicenseDefinitions =
     labels: ['public', 'copyleft']
 
   'agpl-3':
-    name: 'Affero General Public License 3 (AGPL-3.0)'
+    name: 'Affero General Public License 3 (AGPL-3.0-only)'
     priority: 51
     available: true
     url: 'http://opensource.org/licenses/AGPL-3.0'
@@ -175,7 +175,7 @@ LicenseDefinitions =
     labels: ['public', 'mozilla', 'copyleft']
 
   'lgpl-2.1+':
-    name: 'GNU Library or "Lesser" General Public License 2.1 or later (LGPL-2.1)'
+    name: 'GNU Library or "Lesser" General Public License 2.1 or later (LGPL-2.1-or-later)'
     priority: 2
     available: true
     url: 'http://opensource.org/licenses/LGPL-2.1'
@@ -184,7 +184,7 @@ LicenseDefinitions =
     labels: ['public', 'lgpl', 'copyleft']
 
   'lgpl-2.1':
-    name: 'GNU Library or "Lesser" General Public License 2.1 (LGPL-2.1)'
+    name: 'GNU Library or "Lesser" General Public License 2.1 (LGPL-2.1-only)'
     priority: 2
     available: false
     url: 'http://opensource.org/licenses/LGPL-2.1'
@@ -193,7 +193,7 @@ LicenseDefinitions =
     labels: ['public', 'lgpl', 'copyleft']
 
   'lgpl-3':
-    name: 'GNU Library or "Lesser" General Public License 3.0 (LGPL-3.0)'
+    name: 'GNU Library or "Lesser" General Public License 3.0 (LGPL-3.0-only)'
     priority: 3
     available: true
     url: 'http://opensource.org/licenses/LGPL-3.0'
