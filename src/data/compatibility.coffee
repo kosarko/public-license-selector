@@ -21,7 +21,7 @@ LicenseCompatibility =
     'cddl-1':           [ N,                  N,     N,        N,        N,          N,          N,           N,        N,       N,       Y,        N,       N,        N,       N,        N      ]
     'gpl-2':            [ N,                  N,     N,        N,        N,          N,          N,           N,        N,       N,       N,        Y,       N,        N,       Y,        N      ]
     'gpl-2+':           [ N,                  N,     N,        N,        N,          N,          N,           N,        N,       N,       N,        Y,       Y,        Y,       Y,        Y      ]
-    'gpl-3':            [ N,                  N,     N,        N,        N,          N,          N,           N,        N,       N,       N,        N,       Y,        Y,       N,        Y      ]
+    'gpl-3':            [ N,                  N,     N,        N,        N,          N,          N,           N,        N,       N,       N,        N,       N,        Y,       N,        Y      ]
     'agpl-1':           [ N,                  N,     N,        N,        N,          N,          N,           N,        N,       N,       N,        N,       N,        N,       Y,        N      ]
     'agpl-3':           [ N,                  N,     N,        N,        N,          N,          N,           N,        N,       N,       N,        N,       N,        N,       N,        Y      ]
 
