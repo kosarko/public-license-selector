@@ -203,19 +203,19 @@ LicenseDefinitions =
 
   'epl-1':
     name: 'Eclipse Public License 1.0 (EPL-1.0)'
-    priority: 4
-    available: true
+    priority: 6
+    available: false
     url: 'http://opensource.org/licenses/EPL-1.0'
     description: 'Weak copyleft license, that allows users to modify and share the EPL licensed software, while requiring that any changes to the software (derivatives) be shared under the same license. The license is governed by the laws of the State of New York and the intellectual property laws of the United States of America.'
     categories: ['public', 'software', 'copyleft', 'weak']
-    labels: ['public', 'eclipse', 'copyleft']
+    labels: ['public', 'eclipse', 'copyleft', 'osi']
 
-  'cddl-1':
-    name: 'Common Development and Distribution License (CDDL-1.0)'
+  'cddl-1.1':
+    name: 'Common Development and Distribution License 1.1 (CDDL-1.1)'
     priority: 5
     available: true
-    url: 'http://opensource.org/licenses/CDDL-1.0'
-    description: 'It is a weak copyleft license that allows users to modify and distribute the licensed software, provided that any modifications of the original version are shared under the same license. It also includes explicit patent grants (which is lost if the patented feature of the software is modified in any way).'
+    url: 'https://opensource.org/license/CDDL-1.1'
+    description: 'It is a weak copyleft license that allows users to modify and distribute the licensed software, provided that any modifications of the original version are shared under the same license. It also includes explicit patent grants (which is lost if the patented feature of the software is modified in any way). Version 1.1 adds an explicit patent termination provision.'
     categories: ['public', 'software', 'copyleft', 'weak']
     labels: ['public', 'copyleft', 'osi']
 
@@ -254,5 +254,14 @@ LicenseDefinitions =
     description: 'A permissive software license. The user can use the software in any way provided that the modified software includes a copyright notice, a copy of the license terms and modified files include notices stating that the files have been modified.'
     categories: ['public', 'software', 'permissive']
     labels: ['public', 'apache', 'osi']
+
+  'epl-2':
+    name: 'Eclipse Public License 2.0 (EPL-2.0)'
+    priority: 4
+    available: true
+    url: 'https://opensource.org/licenses/EPL-2.0'
+    description: 'Weak copyleft license that allows users to modify and share the EPL licensed software, while requiring that any changes to the software be shared under the same license. Unlike version 1.0, it can be compatible with the GPL - provided that you make the software available under a secondary license.'
+    categories: ['public', 'software', 'copyleft', 'weak']
+    labels: ['public', 'eclipse', 'copyleft', 'osi']
 
 module.exports = LicenseDefinitions
