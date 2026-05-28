@@ -13,7 +13,7 @@ LicenseDefinitions =
     labels: ['public', 'pd']
 
   'cc-zero':
-    name: 'Public Domain Dedication (CC Zero)'
+    name: 'Public domain dedication (CC0)'
     priority: 1
     available: true
     url: 'http://creativecommons.org/publicdomain/zero/1.0/'
@@ -31,7 +31,7 @@ LicenseDefinitions =
     labels: ['public']
 
   'cc-by':
-    name: 'Creative Commons Attribution (CC-BY)'
+    name: 'Creative Commons Attribution 4.0 (CC BY 4.0)'
     priority: 1
     available: true
     url: 'http://creativecommons.org/licenses/by/4.0/'
@@ -49,7 +49,7 @@ LicenseDefinitions =
     labels: ['public']
 
   'cc-by-sa':
-    name: 'Creative Commons Attribution-ShareAlike (CC-BY-SA)'
+    name: 'Creative Commons Attribution–ShareAlike 4.0 (CC BY-SA 4.0)'
     priority: 1
     available: true
     url: 'http://creativecommons.org/licenses/by-sa/4.0/'
@@ -67,7 +67,7 @@ LicenseDefinitions =
     labels: ['public']
 
   'cc-by-nd':
-    name: 'Creative Commons Attribution-NoDerivs (CC-BY-ND)'
+    name: 'Creative Commons Attribution–NoDerivatives 4.0 (CC BY-ND 4.0)'
     priority: 1
     available: true
     url: 'http://creativecommons.org/licenses/by-nd/4.0/'
@@ -76,7 +76,7 @@ LicenseDefinitions =
     labels: ['public', 'cc', 'nd']
 
   'cc-by-nc':
-    name: 'Creative Commons Attribution-NonCommercial (CC-BY-NC)'
+    name: 'Creative Commons Attribution–NonCommercial 4.0 (CC BY-NC 4.0)'
     priority: 1
     available: true
     url: 'http://creativecommons.org/licenses/by-nc/4.0/'
@@ -85,7 +85,7 @@ LicenseDefinitions =
     labels: ['public', 'cc', 'nc']
 
   'cc-by-nc-sa':
-    name: 'Creative Commons Attribution-NonCommercial-ShareAlike (CC-BY-NC-SA)'
+    name: 'Creative Commons Attribution–NonCommercial–ShareAlike 4.0 (CC BY-NC-SA 4.0)'
     priority: 1
     available: true
     url: 'http://creativecommons.org/licenses/by-nc-sa/4.0/'
@@ -94,7 +94,7 @@ LicenseDefinitions =
     labels: ['public', 'cc', 'by', 'nc', 'sa']
 
   'cc-by-nc-nd':
-    name: 'Creative Commons Attribution-NonCommercial-NoDerivs (CC-BY-NC-ND)'
+    name: 'Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 (CC BY-NC-ND 4.0)'
     priority: 1
     available: true
     url: 'http://creativecommons.org/licenses/by-nc-nd/4.0/'
