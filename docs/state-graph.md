@@ -63,8 +63,8 @@ whole or only for the parts that modified
 your code?"])
     class StrongCopyleft softwarePath
 
-    KindOfContent -->|"Software −data"| YourSoftware
-    KindOfContent -->|"Data −software"| DataCopyrightable
+    KindOfContent -->|"Software +software"| YourSoftware
+    KindOfContent -->|"Data +data"| DataCopyrightable
     DataCopyrightable -->|"Yes"| AllOriginal
     AllOriginal -->|"Yes"| AllowDerivativeWorks
     AllOriginal -->|"No"| EnsureLicensing
@@ -81,7 +81,7 @@ your code?"])
     YourSoftware -->|"Original work"| Copyleft
     LicenseInteropSoftware -->|"Next [has(copyleft,permissive)]"| Copyleft
     LicenseInteropSoftware -->|"Next"| ModifyingOrUsing
-    ModifyingOrUsing -->|"Using"| Copyleft
+    ModifyingOrUsing -->|"Using +software"| Copyleft
     Copyleft -->|"Yes +copyleft [has(weak,strong)]"| StrongCopyleft
     DataCopyrightable -->|"No"| End([Select License])
     AllowDerivativeWorks -->|"No +nd"| End([Select License])
@@ -145,7 +145,7 @@ content that you changed licensed?"])
 content of the dataset?"}
     class Changed3dPartyContent dataPath
 
-    KindOfContent -->|"Data −software"| DataCopyrightable
+    KindOfContent -->|"Data +data"| DataCopyrightable
     DataCopyrightable -->|"Yes"| AllOriginal
     AllOriginal -->|"Yes"| AllowDerivativeWorks
     AllOriginal -->|"No"| EnsureLicensing
@@ -174,7 +174,7 @@ content of the dataset?"}
     Term_4(["CC-BY"])
     class Term_4 terminalNode
     DecideAttribute -->|"No +public-domain"| Term_5
-    Term_5(["CC-ZERO"])
+    Term_5(["CC-PUBLIC-DOMAIN, CC-ZERO"])
     class Term_5 terminalNode
     CommercialUse -->|"Yes −nc"| Term_6
     Term_6(["CC-BY-ND"])
@@ -229,12 +229,12 @@ whole or only for the parts that modified
 your code?"])
     class StrongCopyleft softwarePath
 
-    KindOfContent -->|"Software −data"| YourSoftware
+    KindOfContent -->|"Software +software"| YourSoftware
     YourSoftware -->|"Based on existing software"| LicenseInteropSoftware
     YourSoftware -->|"Original work"| Copyleft
     LicenseInteropSoftware -->|"Next [has(copyleft,permissive)]"| Copyleft
     LicenseInteropSoftware -->|"Next"| ModifyingOrUsing
-    ModifyingOrUsing -->|"Using"| Copyleft
+    ModifyingOrUsing -->|"Using +software"| Copyleft
     Copyleft -->|"Yes +copyleft [has(weak,strong)]"| StrongCopyleft
     LicenseInteropSoftware -->|"Next [else has(copyleft,permissive)]"| Term_0
     Term_0(["Select License"])
@@ -247,18 +247,19 @@ your code?"])
     class Term_2 terminalNode
     Copyleft -->|"Yes +copyleft [else has(weak,strong)]"| Term_3
     Term_3(["GPL-2+, GPL-3, AGPL-3, MPL-2
-LGPL-2.1+, LGPL-3, EPL-1, CDDL-1"])
+LGPL-2.1+, LGPL-3, CDDL-1.1, EPL-2"])
     class Term_3 terminalNode
     Copyleft -->|"No −copyleft"| Term_4
-    Term_4(["PERL-ARTISTIC-1, PERL-ARTISTIC-2
-MIT, BSD-3C, BSD-2C, APACHE-2"])
+    Term_4(["CC-PUBLIC-DOMAIN, PERL-ARTISTIC-1
+PERL-ARTISTIC-2, MIT, BSD-3C, BSD-2C
+APACHE-2"])
     class Term_4 terminalNode
     StrongCopyleft -->|"For the software as a whole +strong"| Term_5
     Term_5(["GPL-2+, GPL-3, AGPL-3"])
     class Term_5 terminalNode
     StrongCopyleft -->|"Only for modified parts +weak"| Term_6
-    Term_6(["MPL-2, LGPL-2.1+, LGPL-3, EPL-1
-CDDL-1"])
+    Term_6(["MPL-2, LGPL-2.1+, LGPL-3, CDDL-1.1
+EPL-2"])
     class Term_6 terminalNode
 
     classDef dataPath fill:#e1f5ff,stroke:#01579b,stroke-width:2px,padding:15px,min-width:250px

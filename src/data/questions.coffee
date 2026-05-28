@@ -9,11 +9,11 @@ QuestionDefinitions =
   KindOfContent: ->
     @question 'What do you want to deposit?'
     @answer 'Software', ->
-      @exclude 'data'
+      @include 'software'
       @goto 'YourSoftware'
 
     @answer 'Data', ->
-      @exclude 'software'
+      @include 'data'
       @goto 'DataCopyrightable'
 
   # Data
@@ -165,7 +165,7 @@ QuestionDefinitions =
       @license()
     @answer 'Using', ->
       @licensesList.update @licenses
-      @exclude 'data'
+      @include 'software'
       @goto 'Copyleft'
 
   Copyleft: ->
