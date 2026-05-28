@@ -31,7 +31,10 @@ class StateGraphGenerator {
   // ── Parsing ─────────────────────────────────────────────────────────────────
 
   parseQuestionsFile(filePath) {
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const raw = fs.readFileSync(filePath, 'utf-8');
+    // Strip CoffeeScript line comments so commented-out @goto/@yes/@no lines
+    // are not mistakenly parsed as real transitions.
+    const content = raw.split('\n').map(l => l.replace(/#.*$/, '')).join('\n');
     const stateFunctionRegex = /(\w+):\s*->\s*\n([\s\S]*?)(?=\n\s{2}\w+:|module\.exports|$)/g;
     let match;
     while ((match = stateFunctionRegex.exec(content)) !== null) {
@@ -146,11 +149,13 @@ class StateGraphGenerator {
       }
     }
 
-    // Pattern B: `[else ]if @has('X') [and @has('Y')…]` and goto is in that branch
-    const hasM = block.match(/(?:else\s+)?if\s+@has\(['"](\w[\w-]*)['"]\)((?:\s+and\s+@has\(['"](\w[\w-]*)['"]\))*)/);
-    if (hasM) {
-      const afterMatch = block.substring(block.indexOf(hasM[0]) + hasM[0].length);
-      if (!/\belse\b/.test(afterMatch)) { // no further else → goto is in the if-branch
+    // Pattern B: `[else ]if @has('X') [and @has('Y')…]` — iterate all such clauses in
+    // the block so that `else if @has(...)` chains are handled correctly.  The clause
+    // containing the goto is the one with no further `else` after it.
+    const hasPattern = /(?:else\s+)?if\s+@has\(['"](\w[\w-]*)['"]\)((?:\s+and\s+@has\(['"](\w[\w-]*)['"]\))*)/g;
+    for (const hasM of block.matchAll(hasPattern)) {
+      const afterMatch = block.substring(hasM.index + hasM[0].length);
+      if (!/\belse\b/.test(afterMatch)) { // no further else → goto is in this clause
         const cats = [hasM[1]];
         for (const m of (hasM[2] || '').matchAll(/@has\(['"](\w[\w-]*)['"]\)/g)) cats.push(m[1]);
         if (cats.length === 1) return { type: 'has', category: cats[0] };
@@ -187,6 +192,7 @@ class StateGraphGenerator {
   // ── Bag simulation ───────────────────────────────────────────────────────────
 
   applyOperations(bag, operations) {
+    if (bag === null) return null; // runtime-determined bag: propagate unknown
     let current = [...bag];
     for (const { op, category } of (operations || [])) {
       if (op === 'include') current = current.filter(l => (l.categories || []).includes(category));
@@ -197,6 +203,7 @@ class StateGraphGenerator {
 
   evaluateCondition(condition, bag) {
     if (!condition) return true;
+    if (bag === null) return true; // runtime-determined bag: assume condition fires
     switch (condition.type) {
       case 'only':     return bag.length > 0 && bag.every(l => (l.categories || []).includes(condition.category));
       case 'not_only': return bag.length === 0 || !bag.every(l => (l.categories || []).includes(condition.category));
@@ -218,6 +225,27 @@ class StateGraphGenerator {
   }
 
   /**
+   * BFS from KindOfContent following only non-dynamic states' outgoing transitions.
+   * Returns the set of states reachable without passing through a dynamic state's goto.
+   * Used to avoid double-visiting states that already get a real-bag DFS pass.
+   */
+  _computeNormallyReachableStates(filterPath) {
+    const reachable = new Set();
+    const queue = ['KindOfContent'];
+    while (queue.length > 0) {
+      const state = queue.shift();
+      if (reachable.has(state)) continue;
+      reachable.add(state);
+      if (this.isDynamicState(state)) continue; // don't follow gotos from dynamic states
+      for (const t of this.transitions.filter(tr => tr.from === state)) {
+        if (this.isInPath(t.to, filterPath) && !reachable.has(t.to))
+          queue.push(t.to);
+      }
+    }
+    return reachable;
+  }
+
+  /**
    * DFS simulation of the license bag through the decision tree.
    *
    * Returns an array of terminal outcomes:
@@ -229,6 +257,8 @@ class StateGraphGenerator {
   computeTerminalBags(filterPath) {
     const results = [];
     const initialBag = this.getInitialBag();
+    // Precompute once: states reachable via non-dynamic paths (get real-bag DFS visits).
+    const normallyReachable = this._computeNormallyReachableStates(filterPath);
 
     const dfs = (stateName, bag, ancestors) => {
       if (!this.isInPath(stateName, filterPath)) return;
@@ -237,15 +267,26 @@ class StateGraphGenerator {
       newAncestors.add(stateName);
 
       if (this.isDynamicState(stateName)) {
-        // Emit only hardcoded-key terminals and errors; don't follow gotos
+        // Emit hardcoded-key terminals
         for (const t of this.terminalTransitions.filter(tr => tr.from === stateName && tr.licenseKeys)) {
           const termBag = t.licenseKeys
             .map(k => LicenseDefinitions[k] ? { ...LicenseDefinitions[k], key: k } : null)
             .filter(Boolean);
           results.push({ from: stateName, label: t.label, operations: t.operations, bag: termBag, nodeId: `Term_${results.length}`, isError: false });
         }
+        // Also emit generic @license() terminals (bag computed dynamically at runtime)
+        for (const t of this.terminalTransitions.filter(tr => tr.from === stateName && !tr.licenseKeys)) {
+          results.push({ from: stateName, label: t.label, operations: t.operations, bag: null, nodeId: `Term_${results.length}`, isError: false });
+        }
         for (const t of this.errorTransitions.filter(tr => tr.from === stateName)) {
-          results.push({ from: stateName, label: t.label, operations: t.operations, bag: [], nodeId: `Term_${results.length}`, isError: true });
+          results.push({ from: stateName, label: t.label, operations: t.operations, bag: [], nodeId: 'CannotLicense', isError: true });
+        }
+        // Follow gotos to states exclusively reachable through dynamic states — those won't be
+        // visited by the real-bag DFS and need a null-bag visit to emit their terminals.
+        for (const t of this.transitions.filter(tr => tr.from === stateName)) {
+          if (!this.isInPath(t.to, filterPath)) continue;
+          if (normallyReachable.has(t.to)) continue; // covered by real-bag DFS
+          dfs(t.to, null, newAncestors);
         }
         return;
       }
@@ -256,11 +297,17 @@ class StateGraphGenerator {
         const matchingGoto = this.transitions.find(
           gt => gt.from === stateName && gt.label === t.label && this.isInPath(gt.to, filterPath)
         );
-        if (matchingGoto && this.evaluateCondition(matchingGoto.condition, opBag)) continue;
-        if (opBag.length === 0 && !t.licenseKeys) continue; // phantom empty bag
+        // Suppress terminal when the matching goto unconditionally fires, or when the goto
+        // condition is @only-based (bag-dependent shortcut) and it currently fires.
+        // Do NOT suppress when the goto is @has-based — the terminal is the structural
+        // else-branch and must be shown even if the current full bag satisfies the condition.
+        const isHasCondition = matchingGoto && matchingGoto.condition &&
+          (matchingGoto.condition.type === 'has' || matchingGoto.condition.type === 'all');
+        if (matchingGoto && !isHasCondition && this.evaluateCondition(matchingGoto.condition, opBag)) continue;
+        if (opBag !== null && opBag.length === 0 && !t.licenseKeys) continue; // phantom empty bag
         const termBag = t.licenseKeys
           ? t.licenseKeys.map(k => LicenseDefinitions[k] ? { ...LicenseDefinitions[k], key: k } : null).filter(Boolean)
-          : opBag;
+          : opBag; // null propagates → shown as "Select License"
         results.push({ from: stateName, label: t.label, operations: t.operations, bag: termBag, nodeId: `Term_${results.length}`, isError: false });
       }
 
@@ -271,15 +318,18 @@ class StateGraphGenerator {
           gt => gt.from === stateName && gt.label === t.label && this.isInPath(gt.to, filterPath)
         );
         if (matchingGoto && this.evaluateCondition(matchingGoto.condition, opBag)) continue;
-        results.push({ from: stateName, label: t.label, operations: t.operations, bag: [], nodeId: `Term_${results.length}`, isError: true });
+        results.push({ from: stateName, label: t.label, operations: t.operations, bag: [], nodeId: 'CannotLicense', isError: true });
       }
 
-      // Follow goto transitions whose condition is satisfied
+      // Follow goto transitions whose condition is satisfied.
+      // For null-bag visits (states only reachable through dynamic states), only continue to
+      // further dynamic-exclusive states; skip states covered by the real-bag DFS.
       const seenGotos = new Set();
       for (const t of this.transitions.filter(tr => tr.from === stateName)) {
         if (!this.isInPath(t.to, filterPath)) continue;
+        if (bag === null && normallyReachable.has(t.to)) continue; // real-bag DFS covers this
         const newBag = this.applyOperations(bag, t.operations);
-        if (!this.evaluateCondition(t.condition, newBag)) continue;
+        if (bag !== null && !this.evaluateCondition(t.condition, newBag)) continue;
         const gotoKey = `${t.from}:${t.label}:${t.to}`;
         if (seenGotos.has(gotoKey)) continue;
         seenGotos.add(gotoKey);
@@ -292,7 +342,7 @@ class StateGraphGenerator {
     // Deduplicate: same (from, label, bag contents) → keep first occurrence
     const seen = new Set();
     return results.filter(r => {
-      const fp = r.isError ? 'err' : r.bag.map(l => l.key).sort().join(',');
+      const fp = r.isError ? 'err' : r.bag === null ? 'dynamic' : r.bag.map(l => l.key).sort().join(',');
       const key = `${r.from}:${r.label}:${fp}`;
       if (seen.has(key)) return false;
       seen.add(key);
@@ -304,6 +354,34 @@ class StateGraphGenerator {
   formatOpsLabel(operations) {
     if (!operations || operations.length === 0) return '';
     return operations.map(op => `${op.op === 'include' ? '+' : '\u2212'}${op.category}`).join(' ');
+  }
+
+  /** Format a has/all condition as a compact string, e.g. `has(weak,strong)`. Returns '' for other types. */
+  formatCondition(condition) {
+    if (!condition) return '';
+    if (condition.type === 'has') return `has(${condition.category})`;
+    if (condition.type === 'all') return `has(${condition.conditions.map(c => c.category).join(',')})`;
+    return '';
+  }
+
+  /**
+   * Return the condition annotation for an edge going FROM `from` WITH `label`.
+   * For goto edges: formats the goto condition.
+   * For terminal (else-branch) edges: returns `[else <cond>]` when exactly one
+   * conditional has/all goto with the same (from, label) exists, or `[else]`
+   * when multiple conditional gotos share the label (the terminal is their joint else).
+   */
+  elseConditionLabel(from, label) {
+    const gotos = this.transitions.filter(t =>
+      t.from === from && t.label === label &&
+      t.condition && (t.condition.type === 'has' || t.condition.type === 'all')
+    );
+    if (gotos.length === 0) return '';
+    if (gotos.length === 1) {
+      const condStr = this.formatCondition(gotos[0].condition);
+      return condStr ? `[else ${condStr}]` : '[else]';
+    }
+    return '[else]';
   }
 
   /** Format a license bag for display in a terminal node, wrapping at ~36 chars. */
@@ -351,7 +429,9 @@ class StateGraphGenerator {
       if (processedTransitions.has(transKey)) continue;
       processedTransitions.add(transKey);
       const opStr = this.formatOpsLabel(transition.operations);
-      const fullLabel = opStr ? `${transition.label} ${opStr}` : transition.label;
+      const condStr = this.formatCondition(transition.condition);
+      const parts = [transition.label, opStr, condStr ? `[${condStr}]` : ''].filter(s => s);
+      const fullLabel = parts.join(' ');
       const labelStr = fullLabel ? `|"${this.escapeText(fullLabel)}"| ` : '';
       mermaid += `    ${transition.from} -->${labelStr}${transition.to}\n`;
     }
@@ -361,7 +441,10 @@ class StateGraphGenerator {
       const emittedNodes = new Set();
       for (const r of terminalResults) {
         const opStr = this.formatOpsLabel(r.operations);
-        const fullLabel = opStr ? `${r.label} ${opStr}` : r.label;
+        // Only annotate non-error terminals: @cantlicense is an early exit, not the else-branch.
+        const elseStr = r.isError ? '' : this.elseConditionLabel(r.from, r.label);
+        const parts = [r.label, opStr, elseStr].filter(s => s);
+        const fullLabel = parts.join(' ');
         const labelStr = fullLabel ? `|"${this.escapeText(fullLabel)}"| ` : '';
         mermaid += `    ${r.from} -->${labelStr}${r.nodeId}\n`;
         if (!emittedNodes.has(r.nodeId)) {
@@ -370,8 +453,11 @@ class StateGraphGenerator {
             mermaid += `    ${r.nodeId}(["Cannot License"])\n`;
             mermaid += `    class ${r.nodeId} errorNode\n`;
           } else {
-            // Use raw newlines in bag label for Mermaid line breaks; only escape quotes
-            const bagLabel = this.formatBagNode(r.bag).replace(/"/g, '\\"');
+            // Use raw newlines in bag label for Mermaid line breaks; only escape quotes.
+            // bag===null means the license set is determined dynamically at runtime.
+            const bagLabel = r.bag === null
+              ? 'Select License'
+              : this.formatBagNode(r.bag).replace(/"/g, '\\"');
             mermaid += `    ${r.nodeId}(["${bagLabel}"])\n`;
             mermaid += `    class ${r.nodeId} terminalNode\n`;
           }
@@ -386,7 +472,9 @@ class StateGraphGenerator {
         if (processedTerminal.has(key)) continue;
         processedTerminal.add(key);
         const opStr = this.formatOpsLabel(operations);
-        const fullLabel = opStr ? `${label} ${opStr}` : label;
+        const elseStr = this.elseConditionLabel(from, label);
+        const parts = [label, opStr, elseStr].filter(s => s);
+        const fullLabel = parts.join(' ');
         const labelStr = fullLabel ? `|"${this.escapeText(fullLabel)}"| ` : '';
         mermaid += `    ${from} -->${labelStr}End([Select License])\n`;
       }
@@ -426,12 +514,12 @@ class StateGraphGenerator {
 
   getNodeClass(stateName) {
     const dataStates = [
-      'DataCopyrightable', 'OwnIPR', 'AllowDerivativeWorks',
+      'DataCopyrightable', 'AllOriginal', 'AllowDerivativeWorks',
       'ShareAlike', 'CommercialUse', 'DecideAttribute',
-      'EnsureLicensing', 'LicenseInteropData'
+      'EnsureLicensing', 'Changed3dPartyContent', 'LicenseInteropData'
     ];
     const softwareStates = [
-      'YourSoftware', 'LicenseInteropSoftware', 'Copyleft', 'StrongCopyleft'
+      'YourSoftware', 'LicenseInteropSoftware', 'ModifyingOrUsing', 'Copyleft', 'StrongCopyleft'
     ];
     if (dataStates.includes(stateName)) return 'dataPath';
     if (softwareStates.includes(stateName)) return 'softwarePath';
@@ -442,13 +530,13 @@ class StateGraphGenerator {
 
   isInPath(stateName, pathType) {
     const dataStates = [
-      'KindOfContent', 'DataCopyrightable', 'OwnIPR', 'AllowDerivativeWorks',
+      'KindOfContent', 'DataCopyrightable', 'AllOriginal', 'AllowDerivativeWorks',
       'ShareAlike', 'CommercialUse', 'DecideAttribute',
-      'EnsureLicensing', 'LicenseInteropData'
+      'EnsureLicensing', 'Changed3dPartyContent', 'LicenseInteropData'
     ];
     const softwareStates = [
       'KindOfContent', 'YourSoftware', 'LicenseInteropSoftware',
-      'Copyleft', 'StrongCopyleft'
+      'ModifyingOrUsing', 'Copyleft', 'StrongCopyleft'
     ];
     if (pathType === 'data') return dataStates.includes(stateName);
     if (pathType === 'software') return softwareStates.includes(stateName);

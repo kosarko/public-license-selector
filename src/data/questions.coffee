@@ -18,12 +18,12 @@ QuestionDefinitions =
 
   # Data
   DataCopyrightable: ->
-    @question 'Is your data within the scope of copyright and related rights?'
-    @yes -> @goto 'OwnIPR'
+    @question 'Is your data within the scope of copyright and/or special right of the database maker?'
+    @yes -> @goto 'AllOriginal'
     @no -> @license 'cc-public-domain'
 
-  OwnIPR: ->
-    @question 'Do you own copyright and similar rights in your dataset and all its constitutive parts?'
+  AllOriginal: ->
+    @question 'Is everything in the dataset your original work?'
     @yes -> @goto 'AllowDerivativeWorks'
     @no -> @goto 'EnsureLicensing'
 
@@ -40,7 +40,7 @@ QuestionDefinitions =
         @goto 'CommercialUse'
 
   ShareAlike: ->
-    @question 'Do you require others to share derivative works based on your data under a compatible license?'
+    @question 'Do you require others to share derivative works based on your data under the same license?'
     @yes ->
       @include 'sa'
       if @only 'nc'
@@ -55,7 +55,7 @@ QuestionDefinitions =
         @goto 'CommercialUse'
 
   CommercialUse: ->
-    @question 'Do you allow others to make commercial use of you data?'
+    @question 'Do you allow others to use your data commercially?'
     @yes ->
       @exclude 'nc'
       if @only 'by'
@@ -77,12 +77,12 @@ QuestionDefinitions =
       @license()
 
   EnsureLicensing: ->
-    @question 'Are all the elements of your dataset licensed under a public license or in the Public Domain?'
-    @yes -> @goto 'LicenseInteropData'
+    @question 'Is the third-party content of the dataset licensed under a public license / in the public domain? '
+    @yes -> @goto 'Changed3dPartyContent'
     @no -> @cantlicense 'You need additional permission before you can deposit the data!'
 
   LicenseInteropData: ->
-    @question 'Choose licenses present in your dataset:'
+    @question 'Under which license was the third-party content that you changed licensed?'
     @option ['cc-public-domain', 'cc-zero', 'pddl'], -> @goto 'AllowDerivativeWorks'
     @option ['cc-by', 'odc-by'], ->
       @exclude 'public-domain'
@@ -104,14 +104,20 @@ QuestionDefinitions =
       !_.any state.options, (option) -> option.selected
     @answer 'Next', nextAction, disabledCheck
 
+  Changed3dPartyContent: ->
+    @question 'Have you made any changes to the third-party content of the dataset?'
+    @yes -> @goto 'LicenseInteropData'
+    @no -> @goto 'AllowDerivativeWorks'
+
+  
   # Software
   YourSoftware: ->
-    @question 'Is your code based on existing software or is it your original work?'
+    @question 'Is your software based on existing code or is it all your original work?'
     @answer 'Based on existing software', -> @goto 'LicenseInteropSoftware'
-    @answer 'My own code', -> @goto 'Copyleft'
+    @answer 'Original work', -> @goto 'Copyleft'
 
   LicenseInteropSoftware: ->
-    @question 'Select licenses in your code:'
+    @question 'Select licenses of the code in your software:'
     for license in LicenseCompatibility.columns
       @option [license]
 
@@ -145,16 +151,25 @@ QuestionDefinitions =
       @licensesList.update(licenses)
 
       if @has('copyleft') and @has('permissive')
-        @goto 'Copyleft'
-      else if @has('copyleft') and @has('strong') and @has('weak')
-        @goto 'StrongCopyleft'
-      else
+        @goto 'Copyleft' # we are left with many options after compat filtering, trim them down by further questions
+      else if @only('copyleft') and @only('strong')
         @license()
+      else 
+        @goto 'ModifyingOrUsing'
       return
     @answer 'Next', nextAction, (state) -> !_.any state.options, (option) -> option.selected
 
+  ModifyingOrUsing: ->
+    @question 'Are you modifying the existing software or is the existing software only being used as a part of your larger work?'
+    @answer 'Modifying', ->
+      @license()
+    @answer 'Using', ->
+      @licensesList.update @licenses
+      @exclude 'data'
+      @goto 'Copyleft'
+
   Copyleft: ->
-    @question 'Do you require others who modify your code to release it under a compatible licence?'
+    @question 'Do you require others who use your code in their software to release it under a compatible open-source license?'
     @yes ->
       @include 'copyleft'
       if @has('weak') and @has('strong')
@@ -163,15 +178,16 @@ QuestionDefinitions =
         @license()
     @no ->
       @exclude 'copyleft'
-      @include 'permissive'
+      # XXX This would filter out PD?
+      #@include 'permissive'
       @license()
 
   StrongCopyleft: ->
-    @question 'Is your code used directly as an executable or are you licensing a library (your code will be linked)?'
-    @answer 'Executable', ->
+    @question 'Do you require others to use a compatible open-source license for the software as a whole or only for the parts that modified your code?'
+    @answer 'For the software as a whole', ->
       @include 'strong'
       @license()
-    @answer 'Library', ->
+    @answer 'Only for modified parts', ->
       @include 'weak'
       @license()
 
